@@ -73,13 +73,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         {(process.env.NODE_ENV === "development" || process.env.VERCEL_ENV === "preview") && (
         // eslint-disable-next-line @next/next/no-sync-scripts
         <script
-        data-project-id="34bzOl7t3M8Y5nsru4bQjrM3IcGAgTi5SLhae9iO"
-        data-is-production-environment="false"
-        src="https://snippet.meticulous.ai/v1/meticulous.js"
+            data-project-id="34bzOl7t3M8Y5nsru4bQjrM3IcGAgTi5SLhae9iO"
+            data-is-production-environment="false"
+            src="https://snippet.meticulous.ai/v1/meticulous.js"
         />
         )}
-        
-        </head>
         <PublicEnvScript />
       </head>
 
