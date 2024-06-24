@@ -10,11 +10,11 @@ SCRIPT_DIR="$(readlink -f "$(dirname "$0")")"
 function {
    "api/test.js": {
       "memory": 3009,
-      "maxDuration": 30
+      "maxDuration": 60
     },
     "api/*.js": {
       "memory": 3009,
-      "maxDuration": 30
+      "maxDuration": 60
     }
   }
   
