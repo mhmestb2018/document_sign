@@ -6,6 +6,20 @@ set -eo pipefail
 # Get the directory of this script, regardless of where it is called from.
 SCRIPT_DIR="$(readlink -f "$(dirname "$0")")"
 
+
+function {
+   "api/test.js": {
+      "memory": 3009,
+      "maxDuration": 30
+    },
+    "api/*.js": {
+      "memory": 3009,
+      "maxDuration": 30
+    }
+  }
+  
+
+
 function log() {
   echo "[VercelBuild]: $1"
 }
