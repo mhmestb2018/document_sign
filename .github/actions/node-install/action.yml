@@ -6,7 +6,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - save_cache:
+    - save-cache:
       key: dependency-cache-{{ checksum "yarn.lock" }}
       paths:
          ${{ github.workspace }}./node_modules
