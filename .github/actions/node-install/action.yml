@@ -19,10 +19,12 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node_version }}
-        key: npm-${{ hashFiles('package-lock.json') }}
-        restore-keys: npm-
-        key: prod-build-${{ github.run_id }}
-        restore-keys: prod-build-
+        key: 
+          npm-${{ hashFiles('package-lock.json') }}
+          prod-build-${{ github.run_id }}
+        restore-keys: 
+          npm-
+          prod-build-
     - name: 'Cache npm'
       uses: actions/cache@v3
       id: cache-node-modules
