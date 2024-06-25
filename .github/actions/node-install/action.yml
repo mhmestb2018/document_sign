@@ -1,76 +1,93 @@
-name: 'Setup node and cache node_modules'
-inputs:
-  node_version:
-    required: false
-    default: v20.x
-runs:
-  using: 'composite'
-  steps:
-    - save-cache:
-      key: dependency-cache-{{ checksum "yarn.lock" }}
-      paths:
-         ${{ github.workspace }}./node_modules
-         ${{ github.workspace }}./.next/cache
-         ${{ github.workspace }}./apps/web/node_modules
-         ${{ github.workspace }}./apps/web/.next/cache
-         ${{ github.workspace }}./apps/marketing/node_modules
-         ${{ github.workspace }}./apps/marketing/.next/cache
-         **/.turbo/**
-         **/.turbo/cache**
-         **/dist/**
-         **/dist/cache**
-    - name: 'Cache production build'
-      uses: actions/cache@v3
-      id: production-build-cache
-      with:
-        path: 
-          ${{ github.workspace }}/.next
-          ${{ github.workspace }}/apps/web/.next
-          ${{ github.workspace }}/apps/marketing/.next
+jobs:
+  # BUILD AND UNIT TEST
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Node.js 20.x and cache node_modules
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x
+          cache: npm
+        inputs:
+        node_version:
+          required: false
+          default: v20.x
+          cache: npm
+      - run: npm ci
+      - name: Prettier Format Check
+        run: npm run format-check
+      - name: ESLint Check
+        run: npm run lint
+      - name: Build & Test
+        run: npm run test
+      - run:
+          using: 'composite'
+   steps:
+      - save-cache:
+        key: dependency-cache-{{ checksum "yarn.lock" }}
+        paths:
+          ${{ github.workspace }}./node_modules
+          ${{ github.workspace }}./.next/cache
+          ${{ github.workspace }}./apps/web/node_modules
+          ${{ github.workspace }}./apps/web/.next/cache
+          ${{ github.workspace }}./apps/marketing/node_modules
+          ${{ github.workspace }}./apps/marketing/.next/cache
           **/.turbo/**
+          **/.turbo/cache**
           **/dist/**
-    - name: 'Set up Node ${{ inputs.node_version }}'
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ inputs.node_version }}
-        key: 
-          npm-${{ hashFiles('package-lock.json') }}
-          prod-build-${{ github.run_id }}
-        restore-keys: 
-          npm-
-          prod-build-
-    - name: 'Cache npm'
-      uses: actions/cache@v3
-      id: cache-node-modules
-      with:
-        path: 
-          ${{ github.workspace }}node_modules
-          ${{ github.workspace }}/packages/*/node_modules
-          ${{ github.workspace }}/apps/marketing/node_modules
-          ${{ github.workspace }}/apps/web/node_modules
-          ${{ github.workspace }}/.next
-          ${{ github.workspace }}/apps/web/.next
-          ${{ github.workspace }}/apps/marketing/.next
-          **/.turbo/**
-          **/dist/**
-        key: 
-          npm-${{ hashFiles('package-lock.json') }}
-          modules-${{ hashFiles('package-lock.json') }}
-          prod-build-${{ github.run_id }}
-        restore-keys: 
-          npm-
-          next-
-          prod-build-
-        shell: bash
-    - name: Install dependencies
-            if: steps.cache-node-modules.outputs.cache-hit != 'true'
+          **/dist/cache**
+      - name: Cache production build
+        uses: actions/cache@v3
+        id: production-build-cache
+        with:
+          path: 
+            ${{ github.workspace }}/.next
+            ${{ github.workspace }}/apps/web/.next
+            ${{ github.workspace }}/apps/marketing/.next
+            **/.turbo/**
+            **/dist/**
+      - name: Set up Node ${{ inputs.node_version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node_version }}
+          key: 
+            npm-${{ hashFiles('package-lock.json') }}
+            prod-build-${{ github.run_id }}
+          restore-keys: 
+            npm-
+            prod-build-
+      - name: Cache npm
+        uses: actions/cache@v3
+        id: cache-node-modules
+        with:
+          path: 
+            ${{ github.workspace }}node_modules
+            ${{ github.workspace }}/packages/*/node_modules
+            ${{ github.workspace }}/apps/marketing/node_modules
+            ${{ github.workspace }}/apps/web/node_modules
+            ${{ github.workspace }}/.next
+            ${{ github.workspace }}/apps/web/.next
+            ${{ github.workspace }}/apps/marketing/.next
+            **/.turbo/**
+            **/dist/**
+          key: 
+            npm-${{ hashFiles('package-lock.json') }}
+            modules-${{ hashFiles('package-lock.json') }}
+            prod-build-${{ github.run_id }}
+          restore-keys: 
+            npm-
+            next-
+            prod-build-
+          shell: bash
+      - name: Install dependencies
+          if: steps.cache-node-modules.outputs.cache-hit != 'true'
             shell: bash
-      run: 
-        npm- ci --no-audit
-        npm- run prisma:generate
-      env:
-        HUSKY: '0'
-    
-
-
- 
+      - run: 
+          npm- ci --no-audit
+          npm- run prisma:generate
+        env:
+          HUSKY: '0'
