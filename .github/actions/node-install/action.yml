@@ -42,12 +42,13 @@ runs:
         key: 
           npm-${{ hashFiles('package-lock.json') }}
           modules-${{ hashFiles('package-lock.json') }}
+          prod-build-${{ github.run_id }}
         restore-keys: 
           npm-
           next-
-
-        key: prod-build-${{ github.run_id }}
-        restore-keys: prod-build-
+          prod-build-
+        
+       
 
     runs: npm run build
         shell: bash
