@@ -27,7 +27,13 @@ jobs:
         run: cp .env.example .env
 
       - uses: ./.github/actions/cache-build
-
+      - name: Cache turborepo
+        uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
   build_docker:
     name: Build Docker Image
     runs-on: ubuntu-latest
@@ -62,6 +68,8 @@ jobs:
         # https://github.com/docker/build-push-action/issues/252
         # https://github.com/moby/buildkit/issues/1896
         name: Move cache
-        run: |
+        run: 
           rm -rf /tmp/.buildx-cache
           mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      - run: npm ci
+      - run: npx turbo run test --cache-dir=.turbo
