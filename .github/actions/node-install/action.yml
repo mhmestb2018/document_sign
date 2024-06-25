@@ -2,38 +2,62 @@ name: 'Setup node and cache node_modules'
 inputs:
   node_version:
     required: false
-    default: v18.x
-
+    default: v20.x
 runs:
   using: 'composite'
   steps:
-    - name: Set up Node ${{ inputs.node_version }}
+    - name: 'Cache production build'
+      uses: actions/cache@v3
+      id: production-build-cache
+      with:
+        path: 
+          ${{ github.workspace }}/apps/web/.next
+          ${{ github.workspace }}/apps/marketing/.next
+          **/.turbo/**
+          **/dist/**
+    - name: 'Set up Node ${{ inputs.node_version }}'
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node_version }}
-
-    - name: Cache npm
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
         key: npm-${{ hashFiles('package-lock.json') }}
         restore-keys: npm-
-
-    - name: Cache node_modules
+        key: prod-build-${{ github.run_id }}
+        restore-keys: prod-build-
+    - name: 'Cache npm'
       uses: actions/cache@v3
       id: cache-node-modules
       with:
-        path: |
-          node_modules
-          packages/*/node_modules
-          apps/*/node_modules
-        key: modules-${{ hashFiles('package-lock.json') }}
+        path: 
+          ${{ github.workspace }}node_modules
+          ${{ github.workspace }}/packages/*/node_modules
+          ${{ github.workspace }}/apps/marketing/node_modules
+          ${{ github.workspace }}/apps/web/node_modules
+          ${{ github.workspace }}/.next
+          ${{ github.workspace }}/apps/web/.next
+          ${{ github.workspace }}/apps/marketing/.next
+          **/.turbo/**
+          **/dist/**
+        key: 
+          npm-${{ hashFiles('package-lock.json') }}
+          modules-${{ hashFiles('package-lock.json') }}
+        restore-keys: 
+          npm-
+          next-
 
-    - name: Install dependencies
-      if: steps.cache-node-modules.outputs.cache-hit != 'true'
-      shell: bash
-      run: |
+        key: prod-build-${{ github.run_id }}
+        restore-keys: prod-build-
+
+    runs: npm run build
+        shell: bash
+        - name: Install dependencies
+            if: steps.cache-node-modules.outputs.cache-hit != 'true'
+            shell: bash
+    runs: 
         npm ci --no-audit
         npm run prisma:generate
       env:
         HUSKY: '0'
+    
+
+
+ 
