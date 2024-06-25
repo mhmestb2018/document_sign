@@ -1,0 +1,53 @@
+name: ci
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml # use our exisiting CI workflow to run tests
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ci] # make sure our tests pass before trying to deploy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - id: has-changed
+        uses: ./.github/actions/has-changed # note: this the folder name we stored the "action.yml" file in earlier
+        with:
+          workspace_name: <your-package.json-name>
+          from_ref: ${{ github.ref_name }}
+          to_ref: HEAD^1
+          force: ${{ github.event_name == 'workflow_dispatch' }} # this flag forces the package to be marked as changed so it gets deployed. This is useful when you manually trigger a deploy like with a workflow_dispatch event
+
+      - name: Cache turborepo
+        if: steps.has-changed.outputs.changed == 'true' # we only run this if the package has changed
+        uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
+      
+      - name: Setup Node
+        if: steps.has-changed.outputs.changed == 'true'
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+      
+      - run: npm ci
+        if: steps.has-changed.outputs.changed == 'true'
+
+      - run: npm run with:env -- npm run prisma:migrate-deploy -w @documenso/prisma
+        if: steps.has-changed.outputs.changed == 'true'
