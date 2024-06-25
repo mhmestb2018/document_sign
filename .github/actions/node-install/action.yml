@@ -47,15 +47,11 @@ runs:
           npm-
           next-
           prod-build-
-        
-       
-
-    runs: npm- run build
         shell: bash
-        - name: Install dependencies
+    - name: Install dependencies
             if: steps.cache-node-modules.outputs.cache-hit != 'true'
             shell: bash
-    runs: 
+      run: 
         npm- ci --no-audit
         npm- run prisma:generate
       env:
