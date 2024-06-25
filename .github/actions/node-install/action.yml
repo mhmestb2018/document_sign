@@ -50,14 +50,14 @@ runs:
         
        
 
-    runs: npm run build
+    runs: npm- run build
         shell: bash
         - name: Install dependencies
             if: steps.cache-node-modules.outputs.cache-hit != 'true'
             shell: bash
     runs: 
-        npm ci --no-audit
-        npm run prisma:generate
+        npm- ci --no-audit
+        npm- run prisma:generate
       env:
         HUSKY: '0'
     
